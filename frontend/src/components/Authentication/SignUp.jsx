@@ -1,8 +1,10 @@
 import React from 'react'
-import { Button, InputGroup, VStack } from "@chakra-ui/react"
+import { Button, InputGroup, Toast, VStack } from "@chakra-ui/react"
 import { Field, Input } from "@chakra-ui/react"
 import { useState } from 'react';
 import { PasswordInput } from "../ui/password-input"
+import { useToast } from "@chakra-ui/react";
+
 
 function SignUp() {
     const [name,setName] = useState();
@@ -10,68 +12,116 @@ function SignUp() {
     const [password,setPassword] = useState();
     const [confirmpassword,setConfirmpassword] = useState();
     const [pic,setPic] = useState();
-
+    const [loading, setLoading] = useState(false);
+    const toast = useToast();
 // if function is used in the tags but not declared then app crashes.
-    const postDetail = (pics) => {};
+    const postDetail = (pics) => {
+        setLoading(true);
+
+        if(pic === undefined){
+
+            toast({
+                title: "Please Select an Image",
+                status: "warning",        
+                duration: 5000,           
+                isClosable: true,
+                position: "bottom",    
+              });
+              return ;
+        };
+
+        if(pics.type === "image/jpeg" || pics.type === "image/png"){
+            const data = new FormData();
+            data.append("file", pics);
+            data.append("upload_preset", "Chat_app");
+            data.append("cloud_name", "dogkksp0j");
+            fetch("https://api.cloudinary.com/v1_1/dogkksp0j/image/upload",{
+               method:"post",
+               body : data
+            })
+                .then((res)=>res.json())
+                .then((data)=>{
+                    setPic(data.url.toString());
+                    setLoading(false);
+                })
+                .catch((err)=>{
+                    console.log(err);
+                    setLoading(false);
+                });
+        }
+        else{
+            toast({
+                title: "Please Select an Image",
+                status: "warning",        
+                duration: 5000,           
+                isClosable: true,
+                position: "bottom",    
+              });
+              setLoading(false)
+              return ;
+        }
+
+    }
+        
     const submitHandler = ()=>{};
-  return (
-    <VStack spacing = "5px" color="black">
-        <Field.Root id='first-name' required>
-            <Field.Label>
-                Name
-                <Field.RequiredIndicator />
-            </Field.Label>
-            <Input placeholder="Enter Your Name" onChange={(e)=>setName(e.target.value)} />
-        </Field.Root>
+return (
+        <VStack spacing = "5px" color="black">
+            <Field.Root id='first-name' required>
+                <Field.Label>
+                    Name
+                    <Field.RequiredIndicator />
+                </Field.Label>
+                <Input placeholder="Enter Your Name" onChange={(e)=>setName(e.target.value)} />
+            </Field.Root>
 
-        <Field.Root id='email' required>
-            <Field.Label>
-                Email
-                <Field.RequiredIndicator />
-            </Field.Label>
-            <Input placeholder="Enter Your Email" onChange={(e)=>setEmail(e.target.value)} />
-        </Field.Root>
+            <Field.Root id='email' required>
+                <Field.Label>
+                    Email
+                    <Field.RequiredIndicator />
+                </Field.Label>
+                <Input placeholder="Enter Your Email" onChange={(e)=>setEmail(e.target.value)} />
+            </Field.Root>
 
-        <Field.Root id='password' required>
-            <Field.Label>
-                Password
-                <Field.RequiredIndicator />
-            </Field.Label>
-            <PasswordInput placeholder ="Enter Your Password" type={"password"} onChange={(e)=>setPassword(e.target.value)} />
-            
-        </Field.Root>
+            <Field.Root id='password' required>
+                <Field.Label>
+                    Password
+                    <Field.RequiredIndicator />
+                </Field.Label>
+                <PasswordInput placeholder ="Enter Your Password" type={"password"} onChange={(e)=>setPassword(e.target.value)} />
+                
+            </Field.Root>
 
-        <Field.Root id='password' required>
-            <Field.Label>
-                Confirm Password
-                <Field.RequiredIndicator />
-            </Field.Label>
-            <PasswordInput placeholder ="Confirm Your Password" type={"password"} onChange={(e)=>setConfirmpassword(e.target.value)} />
-            
-        </Field.Root>
+            <Field.Root id='password' required>
+                <Field.Label>
+                    Confirm Password
+                    <Field.RequiredIndicator />
+                </Field.Label>
+                <PasswordInput placeholder ="Confirm Your Password" type={"password"} onChange={(e)=>setConfirmpassword(e.target.value)} />
+                
+            </Field.Root>
 
-        <Field.Root id='pic'>
-            <Field.Label>
-                Upload Your Picture
-            </Field.Label>
-            <Input
-                type='file'
-                p={1.5}
-                accept="image/*"
-                onChange={(e)=>postDetails(e.target.files[0])}
-                />
-            
-        </Field.Root>
+            <Field.Root id='pic'>
+                <Field.Label>
+                    Upload Your Picture
+                </Field.Label>
+                <Input
+                    type='file'
+                    p={1.5}
+                    accept="image/*"
+                    onChange={(e)=>postDetails(e.target.files[0])}
+                    />
+                
+            </Field.Root>
 
-        <Button colorPalette={'purple'} width="100%" style={{marginTop:15}} 
-            onClick={submitHandler}
-        >
-            Sign Up
-        </Button>
+            <Button colorPalette={'purple'} width="100%" style={{marginTop:15}} 
+                onClick={submitHandler} isLoading={loading}
+            >
+                Sign Up
+            </Button>
 
-    </VStack>
-  )
-}
+        </VStack>
+    );
 
+};
 export default SignUp
 
